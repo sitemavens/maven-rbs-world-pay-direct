@@ -30,7 +30,6 @@ use Maven\Settings\OptionType,
 
 class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 
-
 	public function __construct () {
 
 		parent::__construct( "RBS World Pay" );
@@ -48,22 +47,21 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 			new Option(
 					"password", "Password", '', '', OptionType::Password
 			)
-			
 		);
 
 		$this->setParameterPrefix( "" );
 		$this->setItemDelimiter( "" );
-		
+
 		$this->addSettings( $defaultOptions );
 	}
 
 	/**
 	 *
-	 * @return XMLWriter
+	 * @return \XMLWriter
 	 */
 	private function getXmlWriter () {
 
-		$xml = new XMLWriter();
+		$xml = new \XMLWriter();
 		$xml->openMemory();
 		$xml->startDocument( '1.0', 'UTF-8' );
 		$xml->writeDtd( 'paymentService', '-//WorldPay/DTD RBS WorldPay PaymentService v1//EN', 'http://dtd.wp3.rbsworldpay.com//paymentService_v1.dtd' );
@@ -75,7 +73,7 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 		return $xml;
 	}
 
-	private function addAmountElement ( XMLWriter $xml, $addCreditFlag = false ) {
+	private function addAmountElement ( \XMLWriter $xml, $addCreditFlag = false ) {
 		$xml->startElement( 'amount' );
 		$xml->writeAttribute( 'value', $this->getFormatedAmount() );
 		$xml->writeAttribute( 'currencyCode', $this->getSetting( 'currencyCode' ) );
@@ -89,11 +87,9 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 
 	private function getOrderResponse ( $xml ) {
 		$this->raw_response = $xml;
-
 		$x = @simplexml_load_string( $xml );
 
 		$node = $x->reply;
-
 		if ( $node ) {
 			if ( $node->orderStatus ) {
 				$node = $node->orderStatus;
@@ -133,8 +129,8 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 			//$this->setErrorDescription( "Error 201- We are sorry but this transaction has been denied. There are a variety of possible reasons for this, which we can help you to resolve. Please double check your information or reach out to us for assistance via email at <a href='mailto:pablo@peterharrington.co.uk'>pablo@peterharrington.co.uk</a>.";
 		}
 	}
-			
-	private function addSessionElement ( XMLWriter $xml ) {
+
+	private function addSessionElement ( \XMLWriter $xml ) {
 
 		$request = \Maven\Core\Request::current();
 
@@ -147,7 +143,7 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 	}
 
 	private function getFormatedAmount () {
-		
+
 		$amount = $this->getAmount();
 		$amount = number_format( $amount, 2 );
 
@@ -197,10 +193,10 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 		return $xml->outputMemory( true );
 	}
 
-	private function addBrowserDetails ( XMLWriter $xml ) {
+	private function addBrowserDetails ( \XMLWriter $xml ) {
 		$xml->startElement( 'browser' );
-		$xml->writeElement( 'acceptHeader', $_SERVER[ 'HTTP_ACCEPT' ] );
-		$xml->writeElement( 'userAgentHeader', $_SERVER[ 'HTTP_USER_AGENT' ] );
+		$xml->writeElement( 'acceptHeader', $_SERVER['HTTP_ACCEPT'] );
+		$xml->writeElement( 'userAgentHeader', $_SERVER['HTTP_USER_AGENT'] );
 		$xml->endElement(); // browser
 	}
 
@@ -208,7 +204,7 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 
 		//return 'VISA-SSL';
 
-		$ccType = $this->get_parameter( 'card_type' );
+		$ccType = $this->getParameter( 'card_type' );
 
 		$methodCode = "VISA-SSL";
 		switch ( $ccType ) {
@@ -226,24 +222,24 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 		return $methodCode;
 	}
 
-	private function addCreditCardElement ( XMLWriter $xml ) {
+	private function addCreditCardElement ( \XMLWriter $xml ) {
 
 		$xml->startElement( $this->getCreditCardMethodCode() );
-		$xml->writeElement( 'cardNumber', $this->get_parameter( 'card_num' ) );
+		$xml->writeElement( 'cardNumber', $this->getCCNumber() );
 		$xml->startElement( 'expiryDate' );
 		$xml->startElement( 'date' );
-		$xml->writeAttribute( 'month', $this->getExpirationMonth() );
-		$xml->writeAttribute( 'year', $this->get_parameter( 'exp_year' ) );
+		$xml->writeAttribute( 'month', $this->getCCMonth() );
+		$xml->writeAttribute( 'year', $this->getCCYear() );
 		$xml->endElement(); // date
 		$xml->endElement(); // expiryDate
 
-		$xml->writeElement( 'cardHolderName', $this->get_parameter( 'card_holder_name' ) );
+		$xml->writeElement( 'cardHolderName', $this->getCCHolderName() );
 
-		$cvv2 = $this->get_parameter( 'cvv' );
+		$cvv2 = $this->getCCVerificationCode();
 
-		if ( !$cvv2 ) {
-			$cvv2 = $this->get_parameter( 'card_code' );
-		}
+//		if ( !$cvv2 ) {
+//			$cvv2 = $this->getParameter( 'card_code' );
+//		}
 
 		if ( $cvv2 ) {
 			$xml->writeElement( 'cvc', $cvv2 );
@@ -256,10 +252,10 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 	}
 
 	private function getExpirationMonth () {
-		return str_pad( $this->get_parameter( 'exp_month' ), 2, '0', STR_PAD_LEFT );
+		return str_pad( $this->getParameter( 'exp_month' ), 2, '0', STR_PAD_LEFT );
 	}
 
-	private function addAddressNode ( XMLWriter $xml, $paramType ) {
+	private function addAddressNode ( \XMLWriter $xml, $paramType ) {
 		$xml->startElement( 'address' );
 		$xml->writeElement( 'firstName', $this->getFirstName() );
 		$xml->writeElement( 'lastName', $this->getLastName() );
@@ -285,7 +281,7 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 
 		$ch = curl_init();
 		//var_dump($this->get_url());
-		curl_setopt( $ch, CURLOPT_URL, $this->get_url() );
+		curl_setopt( $ch, CURLOPT_URL, $this->getUrl() );
 		curl_setopt( $ch, CURLOPT_TIMEOUT, 900 );
 		curl_setopt( $ch, CURLOPT_FAILONERROR, false );
 		curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
@@ -300,13 +296,13 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 
 		if ( $cookies !== false && is_numeric( $cookies ) ) {
 			if ( $cookies == self::SET_COOKIE ) {
-				$cookieFile = $_SESSION[ 'cookieFile' ];
+				$cookieFile = $_SESSION['cookieFile'];
 
 				//CURLOPT_COOKIEJAR is used when cURL is reading cookie data from disk. 
 				curl_setopt( $ch, CURLOPT_COOKIEJAR, $cookieFile );
 			} else if ( $cookies == self::READ_COOKIE ) {
 
-				$cookieFile = $_SESSION[ 'cookieFile' ];
+				$cookieFile = $_SESSION['cookieFile'];
 
 				//CURLOPT_COOKIEFILE is used when cURL is writing the cookie data to disk.  
 				curl_setopt( $ch, CURLOPT_COOKIEFILE, $cookieFile );
@@ -332,36 +328,34 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 	 * 
 	 */
 	public function execute () {
+		$user = $this->getSetting( 'user' );
+		$password = $this->getSetting( 'password' );
 
-		$user = $this->getSetting('user');
-		$password = $this->getSetting('password');
-		
 		$this->setLiveUrl( "https://{$user}:{$password}@secure.worldpay.com/jsp/merchant/xml/paymentService.jsp" );
 		$this->setTestUrl( "https://{$user}:{$password}@secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp" );
-			
-		$order = $this->getOrderXML( true );
 
+		$order = $this->getOrderXML( true );
 		$this->order = $order;
 
 		$response = $this->getOrderResponse( $this->postXML( $order ) );
 
 		return $response;
 	}
-			
 
 	public function getAvsCode () {
-		if ( $this->response_fields && isset( $this->response_fields[ 5 ] ) )
-			return $this->response_fields[ 5 ];
+		if ( $this->response_fields && isset( $this->response_fields[5] ) )
+			return $this->response_fields[5];
 
 		return false;
 	}
-			
+
 	public function register ( $gateways ) {
 
-		$gateways[ $this->getKey() ] = $this;
+		$gateways[$this->getKey()] = $this;
 
 		return $gateways;
 	}
+
 }
 
 $rbsWordlPayDirectGateway = new RbsWordlPayDirectGateway();

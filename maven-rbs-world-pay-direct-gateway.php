@@ -311,6 +311,7 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 
 		$info = "";
 		$response = curl_exec( $ch );
+        do_action('maven-gateway-debug', $this->getInvoiceNumber(), $response, $xml);
 		if ( $ch ) {
 			//$info = curl_getinfo($ch);
 			curl_close( $ch );

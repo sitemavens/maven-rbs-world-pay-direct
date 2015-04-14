@@ -100,7 +100,7 @@ class RbsWordlPayDirectGateway extends \Maven\Gateways\Gateway {
 						$error_raw = $error_desc;
 
 						if ( strpos( $error_desc, "The Payment Method is not available" ) > 0 )
-							$error_desc = "We are sorry but this transaction has been denied. There are a variety of possible reasons for this, which we can help you to resolve. Please double check your information or reach out to us for assistance via email at <a href='mailto:pablo@peterharrington.co.uk'>pablo@peterharrington.co.uk</a>.";
+							$error_desc = "We are sorry but this transaction has been denied. There are a variety of possible reasons for this, which we can help you to resolve. Please double check your information or reach out to us for assistance via email at ";
 
 						$this->setErrorDescription( $error_desc );
 					} else if ( $node->payment ) {
